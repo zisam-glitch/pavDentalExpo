@@ -3,18 +3,97 @@ import Language from '@/assets/icons/language';
 import Person from '@/assets/icons/person';
 import Video from '@/assets/icons/video';
 import { ThemedText } from '@/components/themed-text';
+import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/store/useAuthStore';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { Link, Stack } from 'expo-router';
-import { useEffect } from 'react';
+import { Link, Stack, useFocusEffect } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Image, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+interface UpcomingAppointment {
+  id: string;
+  start_at: string;
+  dentist_name: string;
+  service_name: string;
+  status: string;
+}
+
 export default function HomeScreen() {
   const { user, loading, fetchUser } = useAuthStore();
+  const [upcomingAppointment, setUpcomingAppointment] = useState<UpcomingAppointment | null>(null);
+  const [timeRemaining, setTimeRemaining] = useState<string>('');
 
   useEffect(() => {
     fetchUser();
   }, []);
+
+  // Fetch upcoming appointment when screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      fetchUpcomingAppointment();
+    }, [user])
+  );
+
+  // Update countdown timer every minute
+  useEffect(() => {
+    if (!upcomingAppointment) return;
+
+    const updateTimer = () => {
+      const now = new Date();
+      const appointmentTime = new Date(upcomingAppointment.start_at);
+      const diffMs = appointmentTime.getTime() - now.getTime();
+
+      if (diffMs <= 0) {
+        setTimeRemaining('Starting now!');
+        return;
+      }
+
+      const diffMins = Math.floor(diffMs / 60000);
+      const diffHours = Math.floor(diffMins / 60);
+      const remainingMins = diffMins % 60;
+
+      if (diffHours > 24) {
+        const days = Math.floor(diffHours / 24);
+        setTimeRemaining(`in ${days} day${days > 1 ? 's' : ''}`);
+      } else if (diffHours > 0) {
+        setTimeRemaining(`in ${diffHours}h ${remainingMins}m`);
+      } else {
+        setTimeRemaining(`in ${diffMins} minute${diffMins !== 1 ? 's' : ''}`);
+      }
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 60000); // Update every minute
+
+    return () => clearInterval(interval);
+  }, [upcomingAppointment]);
+
+  const fetchUpcomingAppointment = async () => {
+    if (!user?.id) return;
+
+    try {
+      const now = new Date().toISOString();
+      const { data, error } = await supabase
+        .from('appointments')
+        .select('id, start_at, dentist_name, service_name, status')
+        .eq('patient_id', user.id)
+        .in('status', ['pending', 'confirmed'])
+        .gte('start_at', now)
+        .order('start_at', { ascending: true })
+        .limit(1)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching appointment:', error);
+        return;
+      }
+
+      setUpcomingAppointment(data);
+    } catch (err) {
+      console.error('Error:', err);
+    }
+  };
 
 
   return (
@@ -40,6 +119,26 @@ export default function HomeScreen() {
           style={styles.image}
           source={require('../assets/images/hero.png')}
         />
+
+        {/* Upcoming Appointment Timer */}
+        {upcomingAppointment && (
+          <View style={styles.appointmentBanner}>
+            <View style={styles.appointmentIconContainer}>
+              <MaterialIcons name="event" size={28} color="#fff" />
+            </View>
+            <View style={styles.appointmentInfo}>
+              <ThemedText style={styles.appointmentTitle}>Upcoming Appointment</ThemedText>
+              <ThemedText style={styles.appointmentDetails}>
+                {upcomingAppointment.service_name} with {upcomingAppointment.dentist_name}
+              </ThemedText>
+              <View style={styles.timerContainer}>
+                <MaterialIcons name="schedule" size={18} color="#4CAF50" />
+                <ThemedText style={styles.timerText}>{timeRemaining}</ThemedText>
+              </View>
+            </View>
+          </View>
+        )}
+
         <View style={styles.header}>
           <Link href="/service-selection" style={styles.primaryCta}>
             <View style={styles.ctaContent}>
@@ -262,5 +361,51 @@ const styles = StyleSheet.create({
     fontFamily: 'YouSans-Regular',
     fontSize: 16,
     lineHeight: 22,
+  },
+  // Appointment Banner Styles
+  appointmentBanner: {
+    flexDirection: 'row',
+    backgroundColor: '#E8F5E9',
+    marginHorizontal: 20,
+    marginVertical: 16,
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    borderLeftWidth: 4,
+    borderLeftColor: '#4CAF50',
+  },
+  appointmentIconContainer: {
+    backgroundColor: '#4CAF50',
+    borderRadius: 25,
+    width: 50,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
+  },
+  appointmentInfo: {
+    flex: 1,
+  },
+  appointmentTitle: {
+    fontFamily: 'YouSans-Bold',
+    fontSize: 15,
+    color: '#2E7D32',
+    marginBottom: 4,
+  },
+  appointmentDetails: {
+    fontFamily: 'YouSans-Regular',
+    fontSize: 13,
+    color: '#555',
+    marginBottom: 6,
+  },
+  timerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  timerText: {
+    fontFamily: 'YouSans-Bold',
+    fontSize: 16,
+    color: '#4CAF50',
   },
 });
