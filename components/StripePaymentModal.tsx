@@ -133,9 +133,6 @@ export default function StripePaymentModal({
               cardStyle={{
                 backgroundColor: '#FFFFFF',
                 textColor: '#1a1a1a',
-                borderColor: '#ddd',
-                borderWidth: 1,
-                borderRadius: 8,
               }}
               style={styles.cardField}
               onCardChange={(cardDetails) => {

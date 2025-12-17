@@ -14,7 +14,11 @@
     },
     "extra": {
       "SUPABASE_URL": "https://cpxsefyfabotgkcnauhn.supabase.co",
-      "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNweHNlZnlmYWJvdGdrY25hdWhuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0MzMzNzAsImV4cCI6MjA4MTAwOTM3MH0.TYPV-3W-yZSdYm1vcAQ4euEkaccmwspLuGKkJLuuefs"
+      "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNweHNlZnlmYWJvdGdrY25hdWhuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0MzMzNzAsImV4cCI6MjA4MTAwOTM3MH0.TYPV-3W-yZSdYm1vcAQ4euEkaccmwspLuGKkJLuuefs",
+      "router": {},
+      "eas": {
+        "projectId": "0e6bc9c9-8712-4c8e-872f-f8c7026cfa73"
+      }
     },
     "android": {
       "package": "com.pavdental.app",
@@ -57,6 +61,5 @@
       "typedRoutes": true,
       "reactCompiler": true
     }
-    
   }
 }
