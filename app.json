@@ -10,7 +10,12 @@
     "newArchEnabled": true,
     "ios": {
       "bundleIdentifier": "com.pavdental.app",
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "This app requires camera access for video consultations with your dentist",
+        "NSMicrophoneUsageDescription": "This app requires microphone access for video consultations with your dentist",
+        "UIBackgroundModes": ["audio", "voip"]
+      }
     },
     "extra": {
       "SUPABASE_URL": "https://cpxsefyfabotgkcnauhn.supabase.co",
@@ -22,6 +27,13 @@
     },
     "android": {
       "package": "com.pavdental.app",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.BLUETOOTH",
+        "android.permission.BLUETOOTH_CONNECT"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -55,7 +67,14 @@
           "merchantIdentifier": "merchant.com.pavdental",
           "enableGooglePay": true
         }
-      ]
+      ],
+      [
+        "@stream-io/video-react-native-sdk",
+        {
+          "enableScreenshare": false
+        }
+      ],
+      "@stream-io/react-native-webrtc"
     ],
     "experiments": {
       "typedRoutes": true,

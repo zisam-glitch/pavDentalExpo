@@ -6,9 +6,9 @@ import { ThemedText } from '@/components/themed-text';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/store/useAuthStore';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { Link, Stack, useFocusEffect } from 'expo-router';
+import { Link, Stack, useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Image, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface UpcomingAppointment {
@@ -20,9 +20,11 @@ interface UpcomingAppointment {
 }
 
 export default function HomeScreen() {
+  const router = useRouter();
   const { user, loading, fetchUser } = useAuthStore();
   const [upcomingAppointment, setUpcomingAppointment] = useState<UpcomingAppointment | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<string>('');
+  const [canJoinCall, setCanJoinCall] = useState(false);
 
   useEffect(() => {
     fetchUser();
@@ -37,19 +39,26 @@ export default function HomeScreen() {
 
   // Update countdown timer every minute
   useEffect(() => {
-    if (!upcomingAppointment) return;
+    if (!upcomingAppointment) {
+      setCanJoinCall(false);
+      return;
+    }
 
     const updateTimer = () => {
       const now = new Date();
       const appointmentTime = new Date(upcomingAppointment.start_at);
       const diffMs = appointmentTime.getTime() - now.getTime();
+      const diffMins = Math.floor(diffMs / 60000);
+
+      // Allow joining 10 minutes before until 30 minutes after appointment start
+      const canJoin = diffMins <= 10 && diffMins >= -30;
+      setCanJoinCall(canJoin);
 
       if (diffMs <= 0) {
         setTimeRemaining('Starting now!');
         return;
       }
 
-      const diffMins = Math.floor(diffMs / 60000);
       const diffHours = Math.floor(diffMins / 60);
       const remainingMins = diffMins % 60;
 
@@ -64,10 +73,21 @@ export default function HomeScreen() {
     };
 
     updateTimer();
-    const interval = setInterval(updateTimer, 60000); // Update every minute
+    const interval = setInterval(updateTimer, 30000); // Update every 30 seconds for more responsive join button
 
     return () => clearInterval(interval);
   }, [upcomingAppointment]);
+
+  const handleJoinCall = () => {
+    if (!upcomingAppointment) return;
+    router.push({
+      pathname: '/video-call',
+      params: {
+        appointmentId: upcomingAppointment.id,
+        dentistName: upcomingAppointment.dentist_name,
+      },
+    });
+  };
 
   const fetchUpcomingAppointment = async () => {
     if (!user?.id) return;
@@ -124,17 +144,26 @@ export default function HomeScreen() {
         {upcomingAppointment && (
           <View style={styles.appointmentBanner}>
             <View style={styles.appointmentIconContainer}>
-              <MaterialIcons name="event" size={28} color="#fff" />
+              <MaterialIcons name={canJoinCall ? 'videocam' : 'event'} size={28} color="#fff" />
             </View>
             <View style={styles.appointmentInfo}>
-              <ThemedText style={styles.appointmentTitle}>Upcoming Appointment</ThemedText>
+              <ThemedText style={styles.appointmentTitle}>
+                {canJoinCall ? 'Ready to Join!' : 'Upcoming Appointment'}
+              </ThemedText>
               <ThemedText style={styles.appointmentDetails}>
                 {upcomingAppointment.service_name} with {upcomingAppointment.dentist_name}
               </ThemedText>
-              <View style={styles.timerContainer}>
-                <MaterialIcons name="schedule" size={18} color="#4CAF50" />
-                <ThemedText style={styles.timerText}>{timeRemaining}</ThemedText>
-              </View>
+              {canJoinCall ? (
+                <Pressable style={styles.joinCallButton} onPress={handleJoinCall}>
+                  <MaterialIcons name="video-call" size={20} color="#fff" />
+                  <ThemedText style={styles.joinCallButtonText}>Join Video Call</ThemedText>
+                </Pressable>
+              ) : (
+                <View style={styles.timerContainer}>
+                  <MaterialIcons name="schedule" size={18} color="#4CAF50" />
+                  <ThemedText style={styles.timerText}>{timeRemaining}</ThemedText>
+                </View>
+              )}
             </View>
           </View>
         )}
@@ -407,5 +436,20 @@ const styles = StyleSheet.create({
     fontFamily: 'YouSans-Bold',
     fontSize: 16,
     color: '#4CAF50',
+  },
+  joinCallButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#4CAF50',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    gap: 8,
+    marginTop: 4,
+  },
+  joinCallButtonText: {
+    fontFamily: 'YouSans-Bold',
+    fontSize: 14,
+    color: '#fff',
   },
 });
