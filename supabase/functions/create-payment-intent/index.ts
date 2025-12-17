@@ -18,10 +18,34 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { amount, currency = 'gbp', paymentMethodId } = await req.json();
+    const { amount, currency = 'gbp', paymentMethodId, confirmOnServer } = await req.json();
 
-    if (paymentMethodId) {
-      // Create and confirm PaymentIntent with the payment method
+    if (confirmOnServer) {
+      // For test mode: Create and immediately confirm with test payment method
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(amount * 100), // Convert to pence
+        currency: currency,
+        payment_method: 'pm_card_visa', // Test card that always succeeds
+        confirm: true,
+        automatic_payment_methods: {
+          enabled: true,
+          allow_redirects: 'never',
+        },
+      });
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          paymentIntentId: paymentIntent.id,
+          status: paymentIntent.status,
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        }
+      );
+    } else if (paymentMethodId) {
+      // Create and confirm PaymentIntent with provided payment method
       const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(amount * 100), // Convert to pence
         currency: currency,

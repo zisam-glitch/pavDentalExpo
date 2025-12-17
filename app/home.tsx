@@ -45,7 +45,7 @@ export default function HomeScreen() {
             <View style={styles.ctaContent}>
               <View>
                 <ThemedText style={styles.mainctaText} type="link">Talk to a dentist by video</ThemedText>
-                <ThemedText style={styles.ctaText} type="link">Available in 1 hour</ThemedText>
+                <ThemedText style={styles.ctaText} type="link">Available in 1.5 hour</ThemedText>
               </View>
               <MaterialIcons name="arrow-forward-ios" size={22} color="#fff" />
             </View>
