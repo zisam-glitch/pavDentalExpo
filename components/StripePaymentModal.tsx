@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import { CardField, useConfirmPayment } from '@stripe/stripe-react-native';
+import { CardField, CardFieldInput, useConfirmPayment } from '@stripe/stripe-react-native';
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
@@ -27,10 +27,11 @@ export default function StripePaymentModal({
   additionalFee,
 }: StripePaymentModalProps) {
   const [loading, setLoading] = useState(false);
-  const [cardComplete, setCardComplete] = useState(false);
+  const [cardDetails, setCardDetails] = useState<CardFieldInput.Details | null>(null);
   const { confirmPayment } = useConfirmPayment();
 
   const totalAmount = appointmentFee + additionalFee;
+  const cardComplete = cardDetails?.complete ?? false;
 
   const handlePayment = async () => {
     if (!cardComplete) {
@@ -59,14 +60,16 @@ export default function StripePaymentModal({
         throw new Error('Failed to get payment client secret');
       }
 
-      // Confirm the payment with the card details
+      // Confirm the payment - CardField automatically provides card details
       const { error: confirmError, paymentIntent } = await confirmPayment(clientSecret, {
         paymentMethodType: 'Card',
+        paymentMethodData: {
+          billingDetails: {},
+        },
       });
 
       if (confirmError) {
         Alert.alert('Payment Failed', confirmError.message);
-        setLoading(false);
         return;
       }
 
@@ -132,8 +135,8 @@ export default function StripePaymentModal({
                 textColor: '#1a1a1a',
               }}
               style={styles.cardField}
-              onCardChange={(cardDetails) => {
-                setCardComplete(cardDetails.complete);
+              onCardChange={(details) => {
+                setCardDetails(details);
               }}
             />
           </View>

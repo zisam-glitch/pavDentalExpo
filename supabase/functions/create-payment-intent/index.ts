@@ -18,31 +18,58 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { amount, currency = 'gbp' } = await req.json();
+    const { amount, currency = 'gbp', paymentMethodId } = await req.json();
 
-    // Create a PaymentIntent with the order amount and currency
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amount * 100), // Convert to pence
-      currency: currency,
-      automatic_payment_methods: {
-        enabled: true,
-      },
-    });
+    if (paymentMethodId) {
+      // Create and confirm PaymentIntent with the payment method
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(amount * 100), // Convert to pence
+        currency: currency,
+        payment_method: paymentMethodId,
+        confirm: true,
+        automatic_payment_methods: {
+          enabled: true,
+          allow_redirects: 'never',
+        },
+      });
 
-    return new Response(
-      JSON.stringify({
-        clientSecret: paymentIntent.client_secret,
-        paymentIntentId: paymentIntent.id,
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      }
-    );
-  } catch (error) {
+      return new Response(
+        JSON.stringify({
+          success: true,
+          paymentIntentId: paymentIntent.id,
+          status: paymentIntent.status,
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        }
+      );
+    } else {
+      // Create a PaymentIntent without confirming (for client-side confirmation)
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(amount * 100), // Convert to pence
+        currency: currency,
+        automatic_payment_methods: {
+          enabled: true,
+        },
+      });
+
+      return new Response(
+        JSON.stringify({
+          clientSecret: paymentIntent.client_secret,
+          paymentIntentId: paymentIntent.id,
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        }
+      );
+    }
+  } catch (error: unknown) {
     console.error('Error creating payment intent:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: errorMessage }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,
