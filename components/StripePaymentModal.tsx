@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import { CardField, CardFieldInput, useConfirmPayment } from '@stripe/stripe-react-native';
+import { initPaymentSheet, presentPaymentSheet } from '@stripe/stripe-react-native';
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
@@ -27,18 +27,10 @@ export default function StripePaymentModal({
   additionalFee,
 }: StripePaymentModalProps) {
   const [loading, setLoading] = useState(false);
-  const [cardDetails, setCardDetails] = useState<CardFieldInput.Details | null>(null);
-  const { confirmPayment } = useConfirmPayment();
 
   const totalAmount = appointmentFee + additionalFee;
-  const cardComplete = cardDetails?.complete ?? false;
 
   const handlePayment = async () => {
-    if (!cardComplete) {
-      Alert.alert('Error', 'Please enter complete card details');
-      return;
-    }
-
     setLoading(true);
 
     try {
@@ -60,26 +52,36 @@ export default function StripePaymentModal({
         throw new Error('Failed to get payment client secret');
       }
 
-      // Confirm the payment - CardField automatically provides card details
-      const { error: confirmError, paymentIntent } = await confirmPayment(clientSecret, {
-        paymentMethodType: 'Card',
-        paymentMethodData: {
-          billingDetails: {},
-        },
+      // Initialize PaymentSheet
+      const { error: initError } = await initPaymentSheet({
+        paymentIntentClientSecret: clientSecret,
+        merchantDisplayName: 'Pav Dental',
       });
 
-      if (confirmError) {
-        Alert.alert('Payment Failed', confirmError.message);
+      if (initError) {
+        Alert.alert('Error', initError.message);
+        setLoading(false);
         return;
       }
 
-      if (paymentIntent?.status === 'Succeeded') {
-        Alert.alert('Success', 'Payment successful!', [
-          { text: 'OK', onPress: onPaymentSuccess }
-        ]);
-      } else {
-        Alert.alert('Payment Status', `Payment status: ${paymentIntent?.status}`);
+      // Present PaymentSheet
+      const { error: paymentError } = await presentPaymentSheet();
+
+      if (paymentError) {
+        if (paymentError.code === 'Canceled') {
+          // User canceled, don't show error
+          setLoading(false);
+          return;
+        }
+        Alert.alert('Payment Failed', paymentError.message);
+        setLoading(false);
+        return;
       }
+
+      // Payment successful
+      Alert.alert('Success', 'Payment successful!', [
+        { text: 'OK', onPress: onPaymentSuccess }
+      ]);
     } catch (error) {
       console.error('Payment error:', error);
       Alert.alert('Error', error instanceof Error ? error.message : 'Payment failed');
@@ -122,40 +124,21 @@ export default function StripePaymentModal({
             </View>
           </View>
 
-          {/* Stripe Card Field */}
-          <View style={styles.cardFieldContainer}>
-            <Text style={styles.cardLabel}>Card Information</Text>
-            <CardField
-              postalCodeEnabled={false}
-              placeholders={{
-                number: '4242 4242 4242 4242',
-              }}
-              cardStyle={{
-                backgroundColor: '#FFFFFF',
-                textColor: '#1a1a1a',
-              }}
-              style={styles.cardField}
-              onCardChange={(details) => {
-                setCardDetails(details);
-              }}
-            />
-          </View>
-
           {/* Stripe Badge */}
           <View style={styles.stripeBadge}>
-            <Text style={styles.stripeText}>🔒 Powered by Stripe</Text>
+            <Text style={styles.stripeText}>🔒 Secure payment powered by Stripe</Text>
           </View>
 
-          {/* Pay Button */}
+          {/* Pay Button - Opens Stripe PaymentSheet */}
           <Pressable
-            style={[styles.payButton, (!cardComplete || loading) && styles.payButtonDisabled]}
+            style={[styles.payButton, loading && styles.payButtonDisabled]}
             onPress={handlePayment}
-            disabled={!cardComplete || loading}
+            disabled={loading}
           >
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.payButtonText}>Pay £{totalAmount.toFixed(2)}</Text>
+              <Text style={styles.payButtonText}>💳 Pay £{totalAmount.toFixed(2)}</Text>
             )}
           </Pressable>
 
