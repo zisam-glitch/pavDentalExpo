@@ -1,13 +1,7 @@
 import { ThemedText } from '@/components/themed-text';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/store/useAuthStore';
-import {
-    Call,
-    CallContent,
-    StreamCall,
-    StreamVideo,
-    StreamVideoClient,
-} from '@stream-io/video-react-native-sdk';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
@@ -18,6 +12,22 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+// Lazy load Stream SDK - only available in custom development builds
+let StreamVideo: any = null;
+let StreamCall: any = null;
+let CallContent: any = null;
+let StreamVideoClient: any = null;
+
+try {
+  const streamModule = require('@stream-io/video-react-native-sdk');
+  StreamVideo = streamModule.StreamVideo;
+  StreamCall = streamModule.StreamCall;
+  CallContent = streamModule.CallContent;
+  StreamVideoClient = streamModule.StreamVideoClient;
+} catch (e) {
+  // Stream SDK not available in Expo Go
+}
+
 export default function VideoCallScreen() {
   const router = useRouter();
   const { appointmentId, dentistName } = useLocalSearchParams<{
@@ -26,10 +36,11 @@ export default function VideoCallScreen() {
   }>();
   const { user } = useAuthStore();
 
-  const [client, setClient] = useState<StreamVideoClient | null>(null);
-  const [call, setCall] = useState<Call | null>(null);
+  const [client, setClient] = useState<any>(null);
+  const [call, setCall] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [streamAvailable, setStreamAvailable] = useState(StreamVideoClient !== null);
 
   useEffect(() => {
     initializeCall();
@@ -106,6 +117,35 @@ export default function VideoCallScreen() {
       router.back();
     }
   };
+
+  // Show fallback if Stream SDK is not available
+  if (!streamAvailable) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Stack.Screen
+          options={{
+            title: 'Video Consultation',
+            headerShown: true,
+          }}
+        />
+        <View style={styles.fallbackContainer}>
+          <MaterialIcons name="videocam-off" size={64} color="#999" />
+          <ThemedText style={styles.fallbackTitle}>
+            Video Consultation Not Available
+          </ThemedText>
+          <ThemedText style={styles.fallbackText}>
+            Video consultations require a custom development build. Please use the EAS Build to create a development build for your device.
+          </ThemedText>
+          <ThemedText style={styles.fallbackSubtext}>
+            Command: npx eas build --platform android
+          </ThemedText>
+          <Pressable style={styles.backButton} onPress={() => router.back()}>
+            <ThemedText style={styles.backButtonText}>Go Back</ThemedText>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   if (loading) {
     return (
@@ -223,5 +263,36 @@ const styles = StyleSheet.create({
   backButtonText: {
     color: '#666',
     fontSize: 16,
+  },
+  fallbackContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  fallbackTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#333',
+    marginTop: 16,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  fallbackText: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 16,
+    lineHeight: 20,
+  },
+  fallbackSubtext: {
+    fontSize: 12,
+    color: '#999',
+    textAlign: 'center',
+    marginBottom: 24,
+    fontFamily: 'monospace',
+    backgroundColor: '#f5f5f5',
+    padding: 12,
+    borderRadius: 8,
   },
 });
