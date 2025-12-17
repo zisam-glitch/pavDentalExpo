@@ -2,13 +2,13 @@ import { supabase } from '@/lib/supabase';
 import { CardField, useConfirmPayment } from '@stripe/stripe-react-native';
 import React, { useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Modal,
-    Pressable,
-    StyleSheet,
-    Text,
-    View,
+  ActivityIndicator,
+  Alert,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 
 interface StripePaymentModalProps {
@@ -41,9 +41,6 @@ export default function StripePaymentModal({
     setLoading(true);
 
     try {
-      // Get the current user's session for authentication
-      const { data: { session } } = await supabase.auth.getSession();
-      
       // Call Supabase Edge Function to create PaymentIntent
       const { data, error: functionError } = await supabase.functions.invoke('create-payment-intent', {
         body: {
