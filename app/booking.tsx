@@ -71,10 +71,9 @@ export default function BookingScreen() {
       
       // Create mock dentists with string keys to match the route parameter type
       const mockDentists: Record<string, Dentist> = {
-        '1': { id: 1, name: 'Dr. Sarah Johnson', specialty: 'General Dentistry' },
-        '2': { id: 2, name: 'Dr. Michael Chen', specialty: 'Orthodontics' },
-        '3': { id: 3, name: 'Dr. Emily Davis', specialty: 'Pediatric Dentistry' },
-        '4': { id: 4, name: 'Dr. Robert Wilson', specialty: 'Oral Surgery' },
+        '1': { id: 1, name: 'Dr Hassan Bhojani', specialty: 'General Dentistry' },
+        '2': { id: 2, name: 'Dr Cosimo Meucci', specialty: 'Orthodontics' },
+       
       };
       
       // Find the dentist with matching ID
@@ -167,7 +166,6 @@ export default function BookingScreen() {
         notes: userNotes,
         service_type: selectedService.id,
         service_name: selectedService.name,
-        amount_paid: APPOINTMENT_FEE + ADDITIONAL_FEE,
       });
 
       const { error } = await supabase.from('appointments').insert({

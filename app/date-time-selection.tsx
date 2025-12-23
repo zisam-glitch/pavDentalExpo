@@ -35,7 +35,7 @@ export default function DateTimeSelection(props?: DateTimeSelectionProps) {
     dentistName: string;
     notes?: string;
   }>();
-  
+
   // Use props if provided, otherwise fall back to route params
   const dentistId = props?.dentistId ?? (params.dentistId ? parseInt(params.dentistId, 10) : 0);
   const dentistName = props?.dentistName ?? params.dentistName;
@@ -99,7 +99,7 @@ export default function DateTimeSelection(props?: DateTimeSelectionProps) {
         // We need to query a wider range to account for timezone differences
         const startOfDayUTC = new Date(`${dateString}T00:00:00Z`);
         const endOfDayUTC = new Date(`${dateString}T23:59:59Z`);
-        
+
         const { data: bookedSlots, error } = await supabase
           .from('appointments')
           .select('start_at')
@@ -107,7 +107,7 @@ export default function DateTimeSelection(props?: DateTimeSelectionProps) {
           .gte('start_at', startOfDayUTC.toISOString())
           .lte('start_at', endOfDayUTC.toISOString())
           .in('status', ['pending', 'confirmed']);
-          
+
         console.log('Database query result:', { bookedSlots, error });
         console.log('Query range:', { startOfDayUTC: startOfDayUTC.toISOString(), endOfDayUTC: endOfDayUTC.toISOString() });
 
@@ -155,9 +155,9 @@ export default function DateTimeSelection(props?: DateTimeSelectionProps) {
             const bookedHours = bookedTime.getUTCHours();
             const bookedMinutes = bookedTime.getUTCMinutes();
             const matches = bookedHours === hours && bookedMinutes === minutes;
-            
+
             console.log(`Comparing slot ${slot} (${hours}:${minutes}) with booked time ${bookedTime.toISOString()} (UTC: ${bookedHours}:${bookedMinutes}) - Match: ${matches}`);
-            
+
             return matches;
           });
 
@@ -212,13 +212,13 @@ export default function DateTimeSelection(props?: DateTimeSelectionProps) {
       setState(prev => ({ ...prev, error: 'Please select a time slot' }));
       return;
     }
-    
+
     // If onDateTimeSelect callback is provided (used as embedded component), call it
     if (props?.onDateTimeSelect) {
       props.onDateTimeSelect(state.selectedDate, state.selectedSlot);
       return;
     }
-    
+
     // Navigate back to booking with selected date and time
     router.push({
       pathname: '/booking',
@@ -243,13 +243,7 @@ export default function DateTimeSelection(props?: DateTimeSelectionProps) {
   return (
     <View style={styles.container}>
       <ScrollView>
-        <Pressable style={styles.backButton} onPress={() => router.back()}>
-          <Text style={styles.backButtonText}>← Back to Dentists</Text>
-        </Pressable>
-
-        <Text style={styles.title}>Select Date & Time</Text>
-        <Text style={styles.subtitle}>Choose your preferred appointment time with {dentistName}</Text>
-
+        <Text style={styles.title}>Choose date</Text>
         {/* Dates */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.datesScroll}>
           {dates.map((d, i) => {
@@ -260,8 +254,7 @@ export default function DateTimeSelection(props?: DateTimeSelectionProps) {
                 style={[styles.dateBtn, selected && styles.selected]}
                 onPress={() => handleDateSelect(d)}
               >
-                <Text style={selected && styles.selectedText}>{format(d, 'EEE')}</Text>
-                <Text style={[styles.dateNum, selected && styles.selectedText]}>{format(d, 'd')}</Text>
+                <Text style={[styles.text, selected && styles.selectedText]}>{format(d, 'EEE d MMM')}</Text>
               </Pressable>
             );
           })}
@@ -288,8 +281,8 @@ export default function DateTimeSelection(props?: DateTimeSelectionProps) {
 
         {state.error && <Text style={styles.error}>{state.error}</Text>}
       </ScrollView>
-      <Pressable 
-        style={props?.buttonStyle || styles.continueBtn} 
+      <Pressable
+        style={props?.buttonStyle || styles.continueBtn}
         onPress={handleContinue}
       >
         <Text style={styles.continueText}>{props?.buttonText || 'Continue to Notes'}</Text>
@@ -301,7 +294,7 @@ export default function DateTimeSelection(props?: DateTimeSelectionProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    paddingVertical: 20,
     backgroundColor: '#fff',
   },
   backButton: {
@@ -309,15 +302,14 @@ const styles = StyleSheet.create({
     padding: 8,
     alignSelf: 'flex-start',
   },
-  backButtonText: {
-    color: '#007AFF',
-    fontSize: 16,
-  },
-  title: { 
-    fontSize: 24, 
-    fontWeight: 'bold', 
-    marginBottom: 8,
-    color: '#1a1a1a',
+
+  title: {
+    fontSize: 15,
+    textTransform: 'uppercase',
+    fontFamily: 'YouSans-Regular',
+    marginBottom: 14,
+    paddingHorizontal: 20
+
   },
   subtitle: {
     fontSize: 16,
@@ -325,17 +317,18 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   datesScroll: {
-    marginBottom: 16,
+    paddingBottom: 20,
+
   },
   label: { fontSize: 16, fontWeight: '600', marginVertical: 12 },
   dateBtn: {
     padding: 12,
     borderWidth: 1,
-    borderRadius: 8,
-    marginRight: 8,
+    borderRadius: 50,
+    marginLeft: 15,
     alignItems: 'center',
   },
-  dateNum: { fontSize: 18, fontWeight: 'bold' },
+  dateNum: { fontSize: 12, fontWeight: 'bold', fontFamily: 'YouSans-Regular' },
   slots: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   slotBtn: {
     padding: 12,
@@ -344,8 +337,21 @@ const styles = StyleSheet.create({
     minWidth: '30%',
     alignItems: 'center',
   },
-  selected: { backgroundColor: '#007AFF', borderColor: '#007AFF' },
-  selectedText: { color: '#fff' },
+  selected: {
+
+    backgroundColor: '#925927',
+    borderColor: '#925927'
+  },
+  text: {
+    fontFamily: 'YouSans-Regular',
+    textTransform: 'uppercase'
+  },
+  selectedText: {
+    color: '#fff',
+    fontFamily: 'YouSans-Regular',
+    textTransform: 'uppercase'
+
+  },
   continueBtn: {
     backgroundColor: '#007AFF',
     padding: 16,

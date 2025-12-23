@@ -1,11 +1,11 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 export default function AppointmentNotes() {
-  const params = useLocalSearchParams<{ 
-    service: string; 
-    dentistId: string; 
+  const params = useLocalSearchParams<{
+    service: string;
+    dentistId: string;
     dentistName: string;
   }>();
   const { service, dentistId } = params;
@@ -24,72 +24,81 @@ export default function AppointmentNotes() {
     });
   };
 
-return (
-  <View style={styles.container}>
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <Text style={styles.title}>Additional Notes</Text>
-      <Text style={styles.subtitle}>
-        Add any special requests or notes for your appointment (optional)
-      </Text>
+  return (
+    <KeyboardAvoidingView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <Text style={styles.title}>How can we help you?</Text>
+        <View style={styles.divider}></View>
 
-      <View style={styles.notesContainer}>
-        <TextInput
-          style={styles.notesInput}
-          multiline
-          numberOfLines={8}
-          placeholder="Type your notes here..."
-          value={notes}
-          onChangeText={setNotes}
-          textAlignVertical="top"
-          placeholderTextColor="#999"
-        />
+        <Text style={styles.subtitle}>
+          For example, describe your symptoms and how long you have had them.
+        </Text>
+
+        <View style={styles.notesContainer}>
+          <TextInput
+            style={styles.notesInput}
+            multiline
+            numberOfLines={8}
+            placeholder=""
+            value={notes}
+            onChangeText={setNotes}
+            textAlignVertical="top"
+            placeholderTextColor="#999"
+          />
+        </View>
+      </ScrollView>
+
+      <View style={styles.footer}>
+        <Pressable style={styles.continueButton} onPress={handleContinue}>
+          <Text style={styles.continueButtonText}>Continue</Text>
+        </Pressable>
       </View>
-    </ScrollView>
-
-    <View style={styles.footer}>
-      <Pressable style={styles.continueButton} onPress={handleContinue}>
-        <Text style={styles.continueButtonText}>Continue to Booking</Text>
-      </Pressable>
-    </View>
-  </View>
-);
+    </KeyboardAvoidingView>
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    justifyContent: 'center',
     backgroundColor: '#FFFFFF',
   },
   scrollContainer: {
-    flexGrow: 1,
+    flex: 1,
+    justifyContent: 'center',
     padding: 20,
   },
   title: {
-    fontSize: 24,
+    fontSize: 22,
     fontFamily: 'YouSans-Bold',
     color: '#1A1A1A',
-    marginBottom: 8,
+    marginBottom: 12,
+  },
+  divider: {
+    width: 40,
+    borderBottomWidth: 3,
+    borderBottomColor: '#E6E6E6',
   },
   subtitle: {
     fontSize: 16,
     fontFamily: 'YouSans-Regular',
     color: '#666666',
+    marginTop: 12,
     marginBottom: 24,
   },
   notesContainer: {
     marginBottom: 24,
   },
   notesInput: {
-    backgroundColor: '#F8F8F8',
-    borderRadius: 12,
+    borderRadius: 6,
     padding: 16,
     fontSize: 16,
     fontFamily: 'YouSans-Regular',
     color: '#1A1A1A',
-    minHeight: 180,
+    minHeight: 100,
     textAlign: 'left',
     borderWidth: 1,
-    borderColor: '#E6E6E6',
+    borderColor: '#1A1A1A',
   },
   footer: {
     padding: 20,
@@ -98,8 +107,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   continueButton: {
-    backgroundColor: '#1A73E8',
-    borderRadius: 8,
+    backgroundColor: '#925927',
+    borderRadius: 6,
     paddingVertical: 16,
     alignItems: 'center',
   },

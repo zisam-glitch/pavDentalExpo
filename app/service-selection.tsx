@@ -1,13 +1,54 @@
+import ArrowIcon from '@/assets/icons/arrow';
 import { router } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+// Map service IDs to their corresponding image paths
+const serviceImages = {
+  checkup: require('@/assets/images/services/checkup.png'),
+  cleaning: require('@/assets/images/services/teethcleaning.png'),
+  whitening: require('@/assets/images/services/whitening.png'),
+  filling: require('@/assets/images/services/fillings.png'),
+  extraction: require('@/assets/images/services/toothextraction.png'),
+  other: require('@/assets/images/services/other.png'),
+};
 
 const services = [
-  { id: 'checkup', name: 'Dental Checkup', description: 'Comprehensive oral examination and cleaning' },
-  { id: 'cleaning', name: 'Teeth Cleaning', description: 'Professional dental cleaning and polishing' },
-  { id: 'whitening', name: 'Teeth Whitening', description: 'Brighten your smile with professional whitening' },
-  { id: 'filling', name: 'Dental Fillings', description: 'Repair cavities and restore teeth' },
-  { id: 'extraction', name: 'Tooth Extraction', description: 'Safe and gentle tooth removal' },
-  { id: 'other', name: 'Other', description: 'Other dental services' },
+  {
+    id: 'checkup',
+    name: 'Dental Checkup',
+    description: 'Comprehensive oral examination and cleaning',
+    image: serviceImages.checkup
+  },
+  {
+    id: 'cleaning',
+    name: 'Teeth Cleaning',
+    description: 'Professional dental cleaning and polishing',
+    image: serviceImages.cleaning
+  },
+
+  {
+    id: 'filling',
+    name: 'Dental Fillings',
+    description: 'Repair cavities and restore teeth',
+    image: serviceImages.filling
+  },
+  {
+    id: 'extraction',
+    name: 'Tooth Extraction',
+    description: 'Safe and gentle tooth removal',
+    image: serviceImages.extraction
+  },
+  {
+    id: 'whitening',
+    name: 'Teeth Whitening',
+    description: 'Brighten your smile with professional whitening',
+    image: serviceImages.whitening
+  },
+  {
+    id: 'other',
+    name: 'Others',
+    description: 'Other dental services',
+    image: serviceImages.other
+  },
 ];
 
 export default function ServiceSelection() {
@@ -21,17 +62,27 @@ export default function ServiceSelection() {
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.title}>What can we help you with?</Text>
-      <Text style={styles.subtitle}>Please select a service to book an appointment</Text>
-      
-      <View style={styles.servicesContainer}>
-        {services.map((service) => (
+      <View>
+        {services.map((service, index) => (
           <Pressable
             key={service.id}
-            style={styles.serviceCard}
+            style={[styles.servicesCta,
+            index === services.length - 1 && styles.lastServiceItem]}
             onPress={() => handleServiceSelect(service.id)}
           >
-            <Text style={styles.serviceName}>{service.name}</Text>
-            <Text style={styles.serviceDescription}>{service.description}</Text>
+            <View style={styles.serviceContent}>
+              <Image
+                source={service.image}
+                style={styles.serviceImage}
+                resizeMode="contain"
+              />
+              <View style={
+                styles.serviceCtaContent
+              }>
+                <Text style={styles.servicesCtaText}>{service.name}</Text>
+                <ArrowIcon size={32} color="#925A27" />
+              </View>
+            </View>
           </Pressable>
         ))}
       </View>
@@ -47,34 +98,42 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    color: '#1a1a1a',
+    fontFamily: 'YouSans-Medium',
+    marginBottom: 20,
   },
-  subtitle: {
+  serviceImage: {
+    width: 50,
+    height: 50,
+    marginRight: 5,
+    borderRadius: 50,
+  },
+  serviceCtaContent: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+
+  },
+  lastServiceItem: {
+    borderBottomWidth: 0,
+  },
+
+  servicesCta: {
+    width: '100%',
+    paddingVertical: 6,
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#e4e4e4ff',
+  },
+  servicesCtaText: {
+    color: '#563212',
+    fontFamily: 'YouSans-Regular',
     fontSize: 16,
-    color: '#666',
-    marginBottom: 24,
+    lineHeight: 22,
   },
-  servicesContainer: {
+  serviceContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 16,
-  },
-  serviceCard: {
-    backgroundColor: '#f8f9fa',
-    borderRadius: 12,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: '#e9ecef',
-  },
-  serviceName: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 8,
-    color: '#1a1a1a',
-  },
-  serviceDescription: {
-    fontSize: 14,
-    color: '#666',
-    lineHeight: 20,
   },
 });

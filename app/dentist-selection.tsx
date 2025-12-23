@@ -1,6 +1,7 @@
+import ArrowIcon from '@/assets/icons/arrow';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 interface Dentist {
   id: number;
@@ -8,7 +9,7 @@ interface Dentist {
   specialty: string;
   availability: string;
   rating: number;
-  image?: string;
+  image: string;
 }
 
 export default function DentistSelection() {
@@ -19,10 +20,22 @@ export default function DentistSelection() {
 
   // In a real app, you would fetch this from your database
   const mockDentists: Dentist[] = [
-    { id: 1, name: 'Dr. Sarah Johnson', specialty: 'General Dentistry', availability: 'Mon-Fri', rating: 4.9 },
-    { id: 2, name: 'Dr. Michael Chen', specialty: 'Orthodontics', availability: 'Mon, Wed, Fri', rating: 4.8 },
-    { id: 3, name: 'Dr. Emily Davis', specialty: 'Pediatric Dentistry', availability: 'Tue, Thu, Sat', rating: 4.7 },
-    { id: 4, name: 'Dr. Robert Wilson', specialty: 'Oral Surgery', availability: 'Mon, Tue, Thu', rating: 4.9 },
+    {
+      id: 1,
+      name: 'Dr Hassan Bhojani',
+      specialty: 'General Dentistry',
+      availability: 'Mon-Fri',
+      rating: 4.9,
+      image: 'https://res.cloudinary.com/dv5noi9zl/image/upload/v1764609933/1000025959_5_du0uls.jpg'
+    },
+    {
+      id: 2,
+      name: 'Dr Cosimo Meucci',
+      specialty: 'Orthodontics',
+      availability: 'Mon, Wed, Fri',
+      rating: 4.8,
+      image: 'https://res.cloudinary.com/dv5noi9zl/image/upload/v1764609934/1000025960_4_lhingy.jpg'
+    }
   ];
 
   const handleSelectDentist = (dentist: Dentist) => {
@@ -38,36 +51,29 @@ export default function DentistSelection() {
 
   return (
     <ScrollView style={styles.container}>
-      <Pressable
-        style={styles.backButton}
-        onPress={() => router.back()}
-      >
-        <Text style={styles.backButtonText}>← Back to Services</Text>
-      </Pressable>
-
       <Text style={styles.title}>Select a Dentist</Text>
-      <Text style={styles.subtitle}>Choose your preferred dentist for the appointment</Text>
 
-      <View style={styles.dentistsContainer}>
-        {mockDentists.map((dentist) => (
+      <View >
+        {mockDentists.map((dentist, index) => (
           <Pressable
             key={dentist.id}
-            style={styles.dentistCard}
+            style={[
+              styles.servicesCta,
+              index === mockDentists.length - 1 && styles.lastServiceItem
+            ]}
             onPress={() => handleSelectDentist(dentist)}
           >
-            <View style={styles.dentistAvatar}>
-              <Text style={styles.avatarText}>
-                {dentist.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-              </Text>
-            </View>
-            <View style={styles.dentistInfo}>
-              <Text style={styles.dentistName}>{dentist.name}</Text>
-              <Text style={styles.dentistSpecialty}>{dentist.specialty}</Text>
-              <View style={styles.dentistMeta}>
-                <Text style={styles.availability}>{dentist.availability}</Text>
-                <View style={styles.ratingContainer}>
-                  <Text style={styles.ratingText}>★ {dentist.rating}</Text>
-                </View>
+            <View style={styles.serviceContent}>
+              <Image
+                source={{ uri: dentist.image }}
+                style={styles.serviceImage}
+                resizeMode="contain"
+              />
+              <View style={
+                styles.serviceCtaContent
+              }>
+                <Text style={styles.servicesCtaText}>{dentist.name}</Text>
+                <ArrowIcon size={32} color="#925A27" />
               </View>
             </View>
           </Pressable>
@@ -83,84 +89,47 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: '#fff',
   },
-  backButton: {
-    marginBottom: 16,
-    padding: 8,
-    alignSelf: 'flex-start',
-  },
-  backButtonText: {
-    color: '#007AFF',
-    fontSize: 16,
-  },
+
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    color: '#1a1a1a',
+    fontFamily: 'YouSans-Medium',
+    marginBottom: 20,
   },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 24,
-  },
-  dentistsContainer: {
-    gap: 16,
-  },
-  dentistCard: {
-    flexDirection: 'row',
-    padding: 16,
-    backgroundColor: '#f8f9fa',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e9ecef',
-    alignItems: 'center',
-  },
-  dentistAvatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#007AFF20',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  avatarText: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#007AFF',
-  },
-  dentistInfo: {
+  serviceCtaContent: {
     flex: 1,
-  },
-  dentistName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1a1a1a',
-    marginBottom: 4,
-  },
-  dentistSpecialty: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 8,
-  },
-  dentistMeta: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingVertical: 12,
+
   },
-  availability: {
-    fontSize: 13,
-    color: '#666',
+  lastServiceItem: {
+    borderBottomWidth: 0,
   },
-  ratingContainer: {
-    backgroundColor: '#f0f7ff',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
+  serviceImage: {
+    width: 50,
+    height: 50,
+    marginRight: 5,
+    borderRadius: 50,
   },
-  ratingText: {
-    color: '#007AFF',
-    fontSize: 13,
-    fontWeight: '600',
+
+  servicesCta: {
+    width: '100%',
+    paddingVertical: 6,
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#e4e4e4ff',
   },
+  servicesCtaText: {
+    color: '#563212',
+    fontFamily: 'YouSans-Regular',
+    fontSize: 16,
+    lineHeight: 22,
+  },
+  serviceContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+
+
 });
