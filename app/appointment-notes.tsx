@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
   },
   continueButtonText: {
     color: '#FFFFFF',
-    fontFamily: 'YouSans-Medium',
+    fontFamily: 'YouSans-Bold',
     fontSize: 16,
   },
 });

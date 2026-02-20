@@ -26,6 +26,16 @@ export default function HomeScreen() {
   const [timeRemaining, setTimeRemaining] = useState<string>('');
   const [canJoinCall, setCanJoinCall] = useState(false);
 
+  const formatAppointmentDate = (dateString: string) => {
+    const options: Intl.DateTimeFormatOptions = {
+      weekday: 'long',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    };
+    return new Date(dateString).toLocaleDateString('en-GB', options);
+  };
+
   useEffect(() => {
     fetchUser();
   }, []);
@@ -134,6 +144,39 @@ export default function HomeScreen() {
           </View>
           <MaterialIcons name="arrow-forward-ios" size={22} color="#000" />
         </View>
+        {upcomingAppointment && (
+          <View style={styles.upcomingAppointment}>
+            <ThemedText style={styles.upcomingAppointmentText}>Your events</ThemedText>
+            <View style={styles.upcomingAppointmentContent}>
+              <View style={styles.mainupcomingAppointmentContent}>
+                <Image
+                  source={require('../assets/images/colock.png')}
+                  style={styles.serviceImage2}
+                  resizeMode="contain"
+                />
+                <View>
+                  <ThemedText style={styles.upcomingAppointmentTitle}>{canJoinCall ? 'Ready to Join!' : 'Upcoming Appointment'}</ThemedText>
+                  <ThemedText style={styles.upcomingAppointmentDesc}>{upcomingAppointment.service_name} </ThemedText>
+                </View>
+              </View>
+              <View style={styles.upcomingAppointmentTime}>
+                <ThemedText style={styles.upcomingAppointmentTitle2}>
+                  You have an appointment with {upcomingAppointment.dentist_name} for {upcomingAppointment.service_name} on {formatAppointmentDate(upcomingAppointment.start_at)}.
+                </ThemedText>
+                {canJoinCall ? (
+                  <Pressable style={styles.continueButton} onPress={handleJoinCall}>
+                    <ThemedText style={styles.continueButtonText}>Join Appointment</ThemedText>
+                  </Pressable>
+                ) : (
+                  <Pressable style={styles.continueButton} >
+                    <ThemedText style={styles.continueButtonText}>Appointment {timeRemaining}</ThemedText>
+                  </Pressable>
+                )}
+              </View>
+            </View>
+          </View>
+        )}
+       
 
         <Image
           style={styles.image}
@@ -141,32 +184,7 @@ export default function HomeScreen() {
         />
 
         {/* Upcoming Appointment Timer */}
-        {upcomingAppointment && (
-          <View style={styles.appointmentBanner}>
-            <View style={styles.appointmentIconContainer}>
-              <MaterialIcons name={canJoinCall ? 'videocam' : 'event'} size={28} color="#fff" />
-            </View>
-            <View style={styles.appointmentInfo}>
-              <ThemedText style={styles.appointmentTitle}>
-                {canJoinCall ? 'Ready to Join!' : 'Upcoming Appointment'}
-              </ThemedText>
-              <ThemedText style={styles.appointmentDetails}>
-                {upcomingAppointment.service_name} with {upcomingAppointment.dentist_name}
-              </ThemedText>
-              {canJoinCall ? (
-                <Pressable style={styles.joinCallButton} onPress={handleJoinCall}>
-                  <MaterialIcons name="video-call" size={20} color="#fff" />
-                  <ThemedText style={styles.joinCallButtonText}>Join Video Call</ThemedText>
-                </Pressable>
-              ) : (
-                <View style={styles.timerContainer}>
-                  <MaterialIcons name="schedule" size={18} color="#4CAF50" />
-                  <ThemedText style={styles.timerText}>{timeRemaining}</ThemedText>
-                </View>
-              )}
-            </View>
-          </View>
-        )}
+
 
         <View style={styles.header}>
           <Link href="/service-selection" style={styles.primaryCta}>
@@ -242,12 +260,12 @@ export default function HomeScreen() {
         </View>
         <View style={styles.services}>
           <ThemedText style={styles.title}>
-           Need a specific dentist?
+            Need a specific dentist?
           </ThemedText>
           <View style={styles.ctaRow}>
             <Link href="/booking" style={styles.servicesCtaTop}>
               <View style={styles.serviceContent}>
-                <Language size={26}  />
+                <Language size={26} />
                 <View style={styles.serviceCtaContent}>
                   <ThemedText style={styles.servicesCtaText} type="link">Talk to a doctor in your language</ThemedText>
                   <ArrowIcon size={32} color="#925A27" />
@@ -400,8 +418,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
-    borderLeftWidth: 4,
-    borderLeftColor: '#4CAF50',
+
   },
   appointmentIconContainer: {
     backgroundColor: '#4CAF50',
@@ -451,5 +468,72 @@ const styles = StyleSheet.create({
     fontFamily: 'YouSans-Bold',
     fontSize: 14,
     color: '#fff',
+  },
+  upcomingAppointment: {
+    paddingTop: 20,
+    paddingHorizontal: 20,
+
+  },
+  upcomingAppointmentText: {
+    fontFamily: 'YouSans-Bold',
+    fontSize: 16,
+  },
+  upcomingAppointmentContent: {
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    marginTop: 10,
+  },
+  mainupcomingAppointmentContent: {
+    padding: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E6E6E6',
+  },
+  serviceImage2: {
+    width: 40,
+    height: 40,
+  },
+  upcomingAppointmentTitle: {
+    color: '#563212',
+    fontFamily: 'YouSans-Medium',
+    fontSize: 15.5,
+    lineHeight: 18,
+  },
+  upcomingAppointmentDesc: {
+    color: '#9b9b9bff',
+    fontFamily: 'YouSans-Regular',
+    fontSize: 15,
+    textTransform: 'lowercase'
+  },
+  upcomingAppointmentTime: {
+    padding: 20,
+  },
+  upcomingAppointmentTitle2: {
+    color: '#563212',
+    fontFamily: 'YouSans-Regular',
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  continueButton: {
+    marginTop: 24,
+    backgroundColor: '#925927',
+    borderRadius: 6,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  continueButtonText: {
+    color: '#FFFFFF',
+    fontFamily: 'YouSans-Bold',
+    fontSize: 16,
   },
 });

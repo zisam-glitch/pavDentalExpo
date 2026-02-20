@@ -9,8 +9,10 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  View,
+  View
 } from 'react-native';
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+
 
 interface StripePaymentModalProps {
   visible: boolean;
@@ -29,7 +31,7 @@ export default function StripePaymentModal({
 }: StripePaymentModalProps) {
   const [loading, setLoading] = useState(false);
   const [cardDetails, setCardDetails] = useState<CardFieldInput.Details | null>(null);
-  
+
   // Manual card input as fallback
   const [cardNumber, setCardNumber] = useState('');
   const [expiry, setExpiry] = useState('');
@@ -92,37 +94,31 @@ export default function StripePaymentModal({
       transparent={true}
       onRequestClose={onClose}
     >
-      <View style={styles.centeredView}>
+      <KeyboardAwareScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.centeredView}
+        enableOnAndroid={true}
+        keyboardShouldPersistTaps="handled"
+        extraScrollHeight={50}
+        enableResetScrollToCoords={false}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.modalView}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>Payment Details</Text>
+            <Text style={styles.title}>Card Details</Text>
             <Pressable onPress={onClose} style={styles.closeButton}>
               <Text style={styles.closeButtonText}>✕</Text>
             </Pressable>
           </View>
 
           {/* Price Summary */}
-          <View style={styles.priceSummary}>
-            <View style={styles.priceRow}>
-              <Text style={styles.priceLabel}>Appointment Fee</Text>
-              <Text style={styles.priceValue}>£{appointmentFee.toFixed(2)}</Text>
-            </View>
-            <View style={styles.priceRow}>
-              <Text style={styles.priceLabel}>Additional Fees</Text>
-              <Text style={styles.priceValue}>£{additionalFee.toFixed(2)}</Text>
-            </View>
-            <View style={styles.divider} />
-            <View style={styles.priceRow}>
-              <Text style={styles.totalLabel}>Total</Text>
-              <Text style={styles.totalValue}>£{totalAmount.toFixed(2)}</Text>
-            </View>
-          </View>
+
 
           {/* Card Input Section */}
           <View style={styles.cardSection}>
-            <Text style={styles.cardSectionTitle}>Card Details</Text>
-            
+            {/* <Text style={styles.cardSectionTitle}>Card Details</Text> */}
+
             {!useManualInput ? (
               <>
                 <CardField
@@ -173,16 +169,16 @@ export default function StripePaymentModal({
                     secureTextEntry
                   />
                 </View>
-                <Pressable onPress={() => setUseManualInput(false)} style={styles.switchInputButton}>
+                {/* <Pressable onPress={() => setUseManualInput(false)} style={styles.switchInputButton}>
                   <Text style={styles.switchInputText}>Use card scanner</Text>
-                </Pressable>
+                </Pressable> */}
               </>
             )}
           </View>
 
           {/* Stripe Badge */}
           <View style={styles.stripeBadge}>
-            <Text style={styles.stripeText}>🔒 Secure payment powered by Stripe</Text>
+            <Text style={styles.stripeText}> Secure payment powered by Stripe</Text>
           </View>
 
           {/* Pay Button */}
@@ -194,32 +190,37 @@ export default function StripePaymentModal({
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.payButtonText}>💳 Pay £{totalAmount.toFixed(2)}</Text>
+              <Text style={styles.payButtonText}> Pay £{totalAmount.toFixed(2)}</Text>
             )}
           </Pressable>
 
           {/* Cancel Button */}
-          <Pressable style={styles.cancelButton} onPress={onClose} disabled={loading}>
+          {/* <Pressable style={styles.cancelButton} onPress={onClose} disabled={loading}>
             <Text style={styles.cancelButtonText}>Cancel</Text>
-          </Pressable>
+          </Pressable> */}
         </View>
-      </View>
+      </KeyboardAwareScrollView>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  centeredView: {
+  scrollView: {
     flex: 1,
-    justifyContent: 'flex-end',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  centeredView: {
+    flexGrow: 1,
+    justifyContent: 'flex-end',
+    paddingBottom: 0, // Add some padding at the bottom
   },
   modalView: {
     backgroundColor: 'white',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
     padding: 24,
-    maxHeight: '80%',
+    width: '100%',
+    maxHeight: '90%',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.25,
@@ -233,8 +234,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   title: {
-    fontSize: 22,
-    fontWeight: 'bold',
+    fontSize: 20,
+    fontFamily: 'YouSans-Medium',
     color: '#1a1a1a',
   },
   closeButton: {
@@ -276,7 +277,7 @@ const styles = StyleSheet.create({
   totalValue: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#007AFF',
+    color: '#925927',
   },
   cardSection: {
     marginBottom: 20,
@@ -298,6 +299,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 14,
     fontSize: 16,
+    fontFamily: 'YouSans-Regular',
     backgroundColor: '#fff',
     marginBottom: 12,
     color: '#000',
@@ -314,7 +316,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   switchInputText: {
-    color: '#007AFF',
     fontSize: 14,
   },
   stripeBadge: {
@@ -323,11 +324,13 @@ const styles = StyleSheet.create({
   },
   stripeText: {
     fontSize: 13,
+    fontFamily: 'YouSans-Regular',
+
     color: '#666',
   },
   payButton: {
-    backgroundColor: '#007AFF',
-    borderRadius: 12,
+    backgroundColor: '#925927',
+    borderRadius: 8,
     padding: 16,
     alignItems: 'center',
     marginBottom: 12,
@@ -337,6 +340,7 @@ const styles = StyleSheet.create({
   },
   payButtonText: {
     color: '#fff',
+    fontFamily: 'YouSans-Bold',
     fontSize: 17,
     fontWeight: '600',
   },

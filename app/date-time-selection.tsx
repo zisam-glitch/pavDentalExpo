@@ -242,7 +242,7 @@ export default function DateTimeSelection(props?: DateTimeSelectionProps) {
 
   return (
     <View style={styles.container}>
-      <ScrollView>
+      <ScrollView style={styles.datesScrollview}>
         <Text style={styles.title}>Choose date</Text>
         {/* Dates */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.datesScroll}>
@@ -259,23 +259,111 @@ export default function DateTimeSelection(props?: DateTimeSelectionProps) {
             );
           })}
         </ScrollView>
+        <View
+          style={{
+            height: 2,
+            backgroundColor: 'rgba(0,0,0,0.15)',
+            opacity: 0.5,
+            elevation: 6
+          }}
+        />
 
         {/* Slots */}
-        <Text style={styles.label}>Available Time Slots</Text>
+        <Text style={styles.label}>Times marked with an asterisk * are subject to an additional fee.</Text>
 
         {state.loadingSlots ? (
           <ActivityIndicator />
         ) : (
-          <View style={styles.slots}>
-            {state.availableSlots.map((slot) => (
-              <Pressable
-                key={slot}
-                style={[styles.slotBtn, state.selectedSlot === slot && styles.selected]}
-                onPress={() => handleSlotSelect(slot)}
-              >
-                <Text style={state.selectedSlot === slot && styles.selectedText}>{slot}</Text>
-              </Pressable>
-            ))}
+          <View style={styles.slotsContainer}>
+            {/* Morning Session: 9:00 - 11:30 */}
+            {(() => {
+              const morningSlots = state.availableSlots.filter(slot => {
+                const [hours, minutes] = slot.split(':').map(Number);
+                const timeInMinutes = hours * 60 + minutes;
+                return timeInMinutes >= 9 * 60 && timeInMinutes <= 11 * 60 + 30;
+              });
+              return morningSlots.length > 0 ? (
+                <View style={styles.timeSection}>
+                  <Text style={styles.timeSectionHeading}>Morning</Text>
+                  <ScrollView 
+                    horizontal 
+                    showsHorizontalScrollIndicator={false}
+                    style={styles.horizontalSlotScroll}
+                    contentContainerStyle={styles.horizontalSlotContent}
+                  >
+                    {morningSlots.map((slot) => (
+                      <Pressable
+                        key={slot}
+                        style={[styles.slotBtn, state.selectedSlot === slot && styles.selected]}
+                        onPress={() => handleSlotSelect(slot)}
+                      >
+                        <Text style={state.selectedSlot === slot && styles.selectedText}>{slot}</Text>
+                      </Pressable>
+                    ))}
+                  </ScrollView>
+                </View>
+              ) : null;
+            })()}
+
+            {/* Afternoon Session: 12:00 - 14:30 */}
+            {(() => {
+              const afternoonSlots = state.availableSlots.filter(slot => {
+                const [hours, minutes] = slot.split(':').map(Number);
+                const timeInMinutes = hours * 60 + minutes;
+                return timeInMinutes >= 12 * 60 && timeInMinutes <= 14 * 60 + 30;
+              });
+              return afternoonSlots.length > 0 ? (
+                <View style={styles.timeSection}>
+                  <Text style={styles.timeSectionHeading}>Afternoon</Text>
+                  <ScrollView 
+                    horizontal 
+                    showsHorizontalScrollIndicator={false}
+                    style={styles.horizontalSlotScroll}
+                    contentContainerStyle={styles.horizontalSlotContent}
+                  >
+                    {afternoonSlots.map((slot) => (
+                      <Pressable
+                        key={slot}
+                        style={[styles.slotBtn, state.selectedSlot === slot && styles.selected]}
+                        onPress={() => handleSlotSelect(slot)}
+                      >
+                        <Text style={state.selectedSlot === slot && styles.selectedText}>{slot}</Text>
+                      </Pressable>
+                    ))}
+                  </ScrollView>
+                </View>
+              ) : null;
+            })()}
+
+            {/* Evening Session: 15:00 - 16:30 */}
+            {(() => {
+              const eveningSlots = state.availableSlots.filter(slot => {
+                const [hours, minutes] = slot.split(':').map(Number);
+                const timeInMinutes = hours * 60 + minutes;
+                return timeInMinutes >= 15 * 60 && timeInMinutes <= 16 * 60 + 30;
+              });
+              return eveningSlots.length > 0 ? (
+                <View style={styles.timeSection}>
+                  <Text style={styles.timeSectionHeading}>Evening</Text>
+                  <ScrollView 
+                    horizontal 
+                    showsHorizontalScrollIndicator={false}
+                    style={styles.horizontalSlotScroll}
+                    contentContainerStyle={styles.horizontalSlotContent}
+                  >
+                    {eveningSlots.map((slot) => (
+                      <Pressable
+                        key={slot}
+                        style={[styles.slotBtn, state.selectedSlot === slot && styles.selected]}
+                        onPress={() => handleSlotSelect(slot)}
+                      >
+                        <Text style={state.selectedSlot === slot && styles.selectedText}>{slot}</Text>
+                      </Pressable>
+                    ))}
+                  </ScrollView>
+                </View>
+              ) : null;
+            })()}
           </View>
         )}
 
@@ -285,7 +373,7 @@ export default function DateTimeSelection(props?: DateTimeSelectionProps) {
         style={props?.buttonStyle || styles.continueBtn}
         onPress={handleContinue}
       >
-        <Text style={styles.continueText}>{props?.buttonText || 'Continue to Notes'}</Text>
+        <Text style={styles.continueText}>{props?.buttonText || 'Continue'}</Text>
       </Pressable>
     </View>
   );
@@ -307,7 +395,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     textTransform: 'uppercase',
     fontFamily: 'YouSans-Regular',
-    marginBottom: 14,
+    marginBottom: 20,
     paddingHorizontal: 20
 
   },
@@ -316,26 +404,59 @@ const styles = StyleSheet.create({
     color: '#666',
     marginBottom: 16,
   },
+  datesScrollview: {},
+
   datesScroll: {
-    paddingBottom: 20,
+    paddingBottom: 30,
 
   },
-  label: { fontSize: 16, fontWeight: '600', marginVertical: 12 },
+  label: {
+    margin: 20,
+    padding: 20,
+    backgroundColor: '#f8e4d2ff',
+    fontSize: 15, 
+    fontFamily: 'YouSans-Regular',
+    marginVertical: 12,
+    borderRadius: 6,
+  },
   dateBtn: {
     padding: 12,
-    borderWidth: 1,
+    borderWidth: 1.5,
+    borderColor: '#e9e8e8ff',
     borderRadius: 50,
     marginLeft: 15,
     alignItems: 'center',
   },
   dateNum: { fontSize: 12, fontWeight: 'bold', fontFamily: 'YouSans-Regular' },
-  slots: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  slotsContainer: {
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    gap: 12,
+  },
+  timeSection: {
+    marginBottom: 16,
+  },
+  timeSectionHeading: {
+    fontSize: 15,
+    fontFamily: 'YouSans-Regular',
+    fontWeight: '600',
+    marginBottom: 8,
+    color: '#333',
+  },
+  horizontalSlotScroll: {
+    flexGrow: 0,
+  },
+  horizontalSlotContent: {
+    gap: 8,
+    paddingRight: 20,
+  },
   slotBtn: {
     padding: 12,
     borderWidth: 1,
-    borderRadius: 8,
-    minWidth: '30%',
+    borderRadius: 50,
+    minWidth: 80,
     alignItems: 'center',
+    borderColor: '#e9e8e8ff',
   },
   selected: {
 
@@ -353,12 +474,13 @@ const styles = StyleSheet.create({
 
   },
   continueBtn: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#925927',
     padding: 16,
-    borderRadius: 8,
+    borderRadius: 6,
     marginTop: 24,
     alignItems: 'center',
+    marginHorizontal: 20,
   },
-  continueText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  continueText: { color: '#fff', fontFamily: 'YouSans-Bold', fontSize: 16, fontWeight: '600' },
   error: { color: 'red', textAlign: 'center', marginTop: 8 },
 });

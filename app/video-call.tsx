@@ -5,10 +5,10 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Pressable,
-    StyleSheet,
-    View
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -122,12 +122,7 @@ export default function VideoCallScreen() {
   if (!streamAvailable) {
     return (
       <SafeAreaView style={styles.container}>
-        <Stack.Screen
-          options={{
-            title: 'Video Consultation',
-            headerShown: true,
-          }}
-        />
+        <Stack.Screen options={{ header: () => null }} />
         <View style={styles.fallbackContainer}>
           <MaterialIcons name="videocam-off" size={64} color="#999" />
           <ThemedText style={styles.fallbackTitle}>

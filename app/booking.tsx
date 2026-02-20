@@ -1,8 +1,9 @@
 import StripePaymentModal from '@/components/StripePaymentModal';
+import { ThemedText } from '@/components/themed-text';
 import { supabase } from '@/lib/supabase';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 // Pricing constants
 const APPOINTMENT_FEE = 19.99;
@@ -18,32 +19,72 @@ interface Service {
   id: string;
   name: string;
   description: string;
+  image: any; // Consider using ImageSourcePropType from 'react-native' for better type safety
 }
 
+const serviceImages = {
+  checkup: require('@/assets/images/services/checkup.png'),
+  cleaning: require('@/assets/images/services/teethcleaning.png'),
+  whitening: require('@/assets/images/services/whitening.png'),
+  filling: require('@/assets/images/services/fillings.png'),
+  extraction: require('@/assets/images/services/toothextraction.png'),
+  other: require('@/assets/images/services/other.png'),
+};
+
 const SERVICES: Record<string, Service> = {
-  checkup: { id: 'checkup', name: 'Dental Checkup', description: 'Comprehensive oral examination and cleaning' },
-  cleaning: { id: 'cleaning', name: 'Teeth Cleaning', description: 'Professional dental cleaning and polishing' },
-  whitening: { id: 'whitening', name: 'Teeth Whitening', description: 'Brighten your smile with professional whitening' },
-  filling: { id: 'filling', name: 'Dental Fillings', description: 'Repair cavities and restore teeth' },
-  extraction: { id: 'extraction', name: 'Tooth Extraction', description: 'Safe and gentle tooth removal' },
-  other: { id: 'other', name: 'Other', description: 'Other dental services' },
+  checkup: {
+    id: 'checkup',
+    name: 'Dental Checkup',
+    description: 'Comprehensive oral examination and cleaning',
+    image: serviceImages.checkup
+  },
+  cleaning: {
+    id: 'cleaning',
+    name: 'Teeth Cleaning',
+    description: 'Professional dental cleaning and polishing',
+    image: serviceImages.cleaning
+  },
+  whitening: {
+    id: 'whitening',
+    name: 'Teeth Whitening',
+    description: 'Brighten your smile with professional whitening',
+    image: serviceImages.whitening
+  },
+  filling: {
+    id: 'filling',
+    name: 'Dental Fillings',
+    description: 'Repair cavities and restore teeth',
+    image: serviceImages.filling
+  },
+  extraction: {
+    id: 'extraction',
+    name: 'Tooth Extraction',
+    description: 'Safe and gentle tooth removal',
+    image: serviceImages.extraction
+  },
+  other: {
+    id: 'other',
+    name: 'Other',
+    description: 'Other dental services',
+    image: serviceImages.other
+  },
 };
 
 export default function BookingScreen() {
-  const { 
-    service: serviceId, 
+  const {
+    service: serviceId,
     dentistId,
     notes = '',
     selectedDate: selectedDateParam,
     selectedTime: selectedTimeParam
-  } = useLocalSearchParams<{ 
+  } = useLocalSearchParams<{
     service: string;
     dentistId: string;
     notes?: string;
     selectedDate?: string;
     selectedTime?: string;
   }>();
-  
+
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [selectedDentist, setSelectedDentist] = useState<Dentist | null>(null);
   const [loading, setLoading] = useState(false);
@@ -56,29 +97,29 @@ export default function BookingScreen() {
   // Set selected service and dentist from route params
   useEffect(() => {
     console.log('BookingScreen useEffect - Route params:', { serviceId, dentistId, notes, selectedDateParam, selectedTimeParam });
-    
+
     if (!serviceId || !SERVICES[serviceId]) {
       // If no valid service is provided, redirect to service selection
       router.replace('/service-selection');
       return;
     }
-    
+
     setSelectedService(SERVICES[serviceId]);
-    
+
     // Set selected dentist if dentistId is provided
     if (dentistId) {
       console.log('Received dentistId from route:', dentistId, 'type:', typeof dentistId);
-      
+
       // Create mock dentists with string keys to match the route parameter type
       const mockDentists: Record<string, Dentist> = {
         '1': { id: 1, name: 'Dr Hassan Bhojani', specialty: 'General Dentistry' },
         '2': { id: 2, name: 'Dr Cosimo Meucci', specialty: 'Orthodontics' },
-       
+
       };
-      
+
       // Find the dentist with matching ID
       const dentist = mockDentists[dentistId];
-      
+
       if (dentist) {
         console.log('Found dentist:', dentist);
         setSelectedDentist(dentist);
@@ -90,7 +131,7 @@ export default function BookingScreen() {
     } else {
       console.log('No dentistId provided in route params');
     }
-    
+
     // Set selected date and time if provided from date-time-selection screen
     if (selectedDateParam) {
       setSelectedDate(new Date(selectedDateParam));
@@ -200,125 +241,85 @@ export default function BookingScreen() {
   if (!selectedService) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0000ff" />
+        <ActivityIndicator size="large" color="#925927" />
       </View>
     );
   }
 
   return (
     <ScrollView style={styles.container}>
-      <Pressable 
-        style={styles.backButton}
-        onPress={() => router.back()}
-      >
-        <Text style={styles.backButtonText}>← Back to Services</Text>
-      </Pressable>
-      
-      <Text style={styles.title}>Book an Appointment</Text>
-      <View style={styles.serviceInfo}>
-        <Text style={styles.serviceName}>{selectedService.name}</Text>
-        <Text style={styles.serviceDescription}>{selectedService.description}</Text>
-      </View>
-
-      {/* Dentist Info */}
-      <View style={styles.section}>
-        <Text style={styles.label}>Dentist</Text>
-        {selectedDentist ? (
-          <View style={styles.dentistInfoCard}>
-            <Text style={styles.dentistName}>{selectedDentist.name}</Text>
-            <Text style={styles.dentistSpecialty}>{selectedDentist.specialty}</Text>
-            <Pressable 
-              style={styles.changeDentistButton}
-              onPress={() => router.push({
-                pathname: '/dentist-selection',
-                params: { service: serviceId }
-              })}
-            >
-              <Text style={styles.changeDentistText}>Change Dentist</Text>
-            </Pressable>
+      <Text style={styles.title}>Your Booking</Text>
+      <View style={styles.divider}></View>
+      <View style={styles.ctaRow}>
+        <View style={styles.servicesCtaTop}>
+          <View style={styles.serviceContent}>
+            <Image
+              source={selectedService.image}
+              style={styles.serviceImage}
+              resizeMode="contain"
+            />
+            <View style={styles.serviceCtaContent}>
+              <View>
+                <ThemedText style={styles.servicesCtaText}>Reason for contact</ThemedText>
+                <ThemedText style={styles.servicesCtaTextdesc}>{selectedService.name}</ThemedText>
+              </View>
+            </View>
           </View>
-        ) : (
-          <Text style={styles.errorText}>No dentist selected</Text>
-        )}
-      </View>
-
-      {/* Date & Time Selection */}
-      <View style={styles.section}>
-        <Text style={styles.label}>Date & Time</Text>
-        {selectedDate && selectedSlot ? (
-          <View style={styles.dateTimeInfoCard}>
-            <Text style={styles.dateTimeText}>
-              {selectedDate.toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-              })}
-            </Text>
-            <Text style={styles.dateTimeText}>{selectedSlot}</Text>
-            <Pressable 
-              style={styles.changeDateTimeButton}
-              onPress={() => router.push({
-                pathname: '/date-time-selection',
-                params: { 
-                  service: serviceId,
-                  dentistId: dentistId,
-                  dentistName: selectedDentist?.name
-                }
-              })}
-            >
-              <Text style={styles.changeDateTimeText}>Change Date & Time</Text>
-            </Pressable>
+        </View>
+        <View style={styles.servicesCta}>
+          <View style={styles.serviceContent}>
+            <Image
+              source={require('../assets/images/services/video.png')}
+              style={styles.serviceImage2}
+              resizeMode="contain"
+            />
+            <View style={styles.serviceCtaContent}>
+              <View>
+                <ThemedText style={styles.servicesCtaText}>Video appointment</ThemedText>
+                <ThemedText style={styles.servicesCtaTextdesc}>
+                  {selectedDentist ? `With ${selectedDentist.name}` : 'Select a dentist'}
+                </ThemedText>
+              </View>
+            </View>
           </View>
-        ) : (
-          <Pressable 
-            style={[styles.selectButton, !selectedDentist && styles.disabledButton]}
-            onPress={() => selectedDentist && router.push({
-              pathname: '/date-time-selection',
-              params: { 
-                service: serviceId,
-                dentistId: dentistId,
-                dentistName: selectedDentist.name
-              }
-            })}
-            disabled={!selectedDentist}
-          >
-            <Text style={styles.selectButtonText}>
-              {selectedDentist ? 'Select Date & Time' : 'Please select a dentist first'}
-            </Text>
-          </Pressable>
-        )}
-      </View>
+        </View>
 
-      {/* Notes */}
-      <View style={styles.section}>
-        <Text style={styles.label}>Notes (Optional)</Text>
-        <Text style={styles.notesText}>
-          {userNotes || 'No additional notes provided'}
-        </Text>
-        <Pressable 
-          style={styles.editNotesButton}
-          onPress={() => router.push({
-            pathname: '/appointment-notes',
-            params: { 
-              service: serviceId,
-              dentistId,
-              notes: userNotes
-            }
-          })}
-        >
-          <Text style={styles.editNotesText}>
-            {userNotes ? 'Edit Notes' : 'Add Notes'}
-          </Text>
-        </Pressable>
+        <View style={styles.servicesCtaBottom}>
+          <View style={styles.serviceContent}>
+            <Image
+              source={require('../assets/images/services/clock.png')}
+              style={styles.serviceImage2}
+              resizeMode="contain"
+            />
+            <View style={styles.serviceCtaContentBottom}>
+              <View>
+                <ThemedText style={styles.servicesCtaText}>{selectedDate!.toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  month: 'long',
+                  day: 'numeric'
+                })}, {selectedSlot} </ThemedText>
+                <ThemedText style={styles.servicesCtaText}>Bangladesh Time UTC+06:00</ThemedText>
+              </View>
+            </View>
+          </View>
+        </View>
       </View>
+      <View>
 
+        <View style={styles.total}>
+          <ThemedText style={styles.totalCtaText}>Total</ThemedText>
+          <ThemedText style={styles.totalCtaText}>£{(APPOINTMENT_FEE + ADDITIONAL_FEE).toFixed(2)}</ThemedText>
+        </View>
+        <Text style={styles.label2}>This amount will be debited after your consultation. It includes a €8 additional fee.</Text>
+
+
+      </View>
       {/* Error Message */}
       {error && <Text style={styles.errorText}>{error}</Text>}
 
       {/* Pricing Section */}
       <View style={styles.pricingSection}>
-        <Text style={styles.pricingTitle}>Price Summary</Text>
+        <Text style={styles.pricingTitle}>How is this total calculated?</Text>
         <View style={styles.priceRow}>
           <Text style={styles.priceLabel}>Appointment Fee</Text>
           <Text style={styles.priceValue}>£{APPOINTMENT_FEE.toFixed(2)}</Text>
@@ -327,12 +328,10 @@ export default function BookingScreen() {
           <Text style={styles.priceLabel}>Additional Fees</Text>
           <Text style={styles.priceValue}>£{ADDITIONAL_FEE.toFixed(2)}</Text>
         </View>
-        <View style={styles.priceDivider} />
-        <View style={styles.priceRow}>
-          <Text style={styles.totalLabel}>Total</Text>
-          <Text style={styles.totalValue}>£{(APPOINTMENT_FEE + ADDITIONAL_FEE).toFixed(2)}</Text>
-        </View>
+        <Text style={styles.pricingTitle2}>How is this total calculated?</Text>
       </View>
+
+      <Text style={styles.ctaText}>By confirming my booking, I agree to receive healthcare by video appointment.</Text>
 
       {/* Confirm with Bank Card Button */}
       <Pressable
@@ -343,7 +342,7 @@ export default function BookingScreen() {
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.bookButtonText}>💳 Confirm with Bank Card</Text>
+          <Text style={styles.bookButtonText}> Confirm with Bank Card</Text>
         )}
       </Pressable>
 
@@ -355,6 +354,8 @@ export default function BookingScreen() {
         appointmentFee={APPOINTMENT_FEE}
         additionalFee={ADDITIONAL_FEE}
       />
+      <Text style={styles.ctaText2}>Appointment prices are set by Assurance Maladie. For more information about billing, or in the event of a technical problem, please visit support.pavdental.com</Text>
+
     </ScrollView>
   );
 }
@@ -363,7 +364,8 @@ export default function BookingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 20,
     backgroundColor: '#fff',
   },
   loadingContainer: {
@@ -372,15 +374,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
   },
-  backButton: {
-    marginBottom: 16,
-    padding: 8,
-    alignSelf: 'flex-start',
+  divider: {
+    width: 40,
+    borderBottomWidth: 3,
+    borderBottomColor: '#E6E6E6',
   },
-  backButtonText: {
-    color: '#007AFF',
-    fontSize: 16,
-  },
+
   serviceInfo: {
     marginBottom: 24,
     padding: 16,
@@ -402,9 +401,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 24,
-    textAlign: 'center',
+    fontFamily: 'YouSans-Bold',
+    marginBottom: 20,
   },
   section: {
     marginBottom: 24,
@@ -516,7 +514,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   bookButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#925927',
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
@@ -526,6 +524,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   bookButtonText: {
+    fontFamily: 'YouSans-Bold',
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
@@ -594,7 +593,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     padding: 8,
     backgroundColor: '#f0f7ff',
-    borderRadius: 6,
+    borderRadius: 0,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#007AFF20',
@@ -606,7 +605,7 @@ const styles = StyleSheet.create({
   },
   selectButton: {
     padding: 16,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#925927',
     borderRadius: 8,
     alignItems: 'center',
   },
@@ -616,30 +615,43 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   pricingSection: {
-    backgroundColor: '#f8f9fa',
-    borderRadius: 12,
-    padding: 16,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    paddingVertical: 16,
     marginTop: 8,
     marginBottom: 8,
+    borderTopColor: '#E6E6E6',
+    borderBottomColor: '#E6E6E6',
   },
   pricingTitle: {
-    fontSize: 16,
+    fontSize: 18,
+    fontFamily: 'YouSans-Regular',
     fontWeight: '600',
     color: '#1a1a1a',
-    marginBottom: 12,
+    marginBottom: 16,
+  },
+  pricingTitle2: {
+    fontSize: 16,
+    fontFamily: 'YouSans-Bold',
+    fontWeight: '600',
+    color: '#664600ff',
   },
   priceRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: 16,
   },
   priceLabel: {
     fontSize: 15,
     color: '#666',
+    fontFamily: 'YouSans-Regular',
+
   },
   priceValue: {
     fontSize: 15,
-    color: '#1a1a1a',
+    color: '#666',
+    fontFamily: 'YouSans-Regular',
+
   },
   priceDivider: {
     height: 1,
@@ -655,5 +667,121 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '700',
     color: '#007AFF',
+  },
+
+  ctaContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 18,
+    width: '100%',
+  },
+  mainctaText: {
+    color: '#fff',
+    fontFamily: 'YouSans-Bold',
+    fontSize: 16,
+    lineHeight: 22,
+  },
+  ctaText: {
+    color: '#9b9b9bff',
+    fontFamily: 'YouSans-Regular',
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  ctaText2: {
+    color: '#9b9b9bff',
+    fontFamily: 'YouSans-Regular',
+    fontSize: 14,
+    lineHeight: 20,
+    marginTop: 10
+  },
+  services: {
+    paddingVertical: 45,
+    paddingHorizontal: 20,
+  },
+
+  ctaRow: {
+    marginTop: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E6E6E6',
+
+  },
+  servicesCta: {
+
+    width: '100%',
+  },
+  servicesCtaBottom: {
+    width: '100%',
+
+  },
+  servicesCtaTop: {
+    width: '100%',
+
+  },
+  serviceContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  serviceCtaContent: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E6E6E6',
+  },
+  serviceCtaContentBottom: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 18,
+
+  },
+  servicesCtaText: {
+    color: '#563212',
+    fontFamily: 'YouSans-Regular',
+    fontSize: 15.5,
+    lineHeight: 18,
+  },
+  servicesCtaTextdesc: {
+    color: '#9b9b9bff',
+    fontFamily: 'YouSans-Regular',
+    fontSize: 15,
+    textTransform: 'lowercase'
+  },
+  serviceImage: {
+    width: 40,
+    height: 40,
+    marginRight: 0,
+    borderRadius: 50,
+  },
+  serviceImage2: {
+    width: 40,
+    height: 40,
+    marginRight: 0,
+    borderRadius: 0,
+  },
+  total: {
+    paddingVertical: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between'
+  },
+  totalCtaText: {
+    color: '#563212',
+    fontFamily: 'YouSans-Regular',
+    fontSize: 17,
+    lineHeight: 18,
+  },
+  label2: {
+    padding: 15,
+    backgroundColor: '#f8e4d2ff',
+    fontSize: 14,
+    fontFamily: 'YouSans-Regular',
+    marginVertical: 12,
+    borderRadius: 6,
   },
 });
